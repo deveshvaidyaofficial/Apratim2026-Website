@@ -345,7 +345,6 @@ body:not(.loading) .hero>*{opacity:1;transform:none}
   z-index:3;
 }
 .vase-row{
-  --gap:clamp(120px,17vw,236px);
   position:relative;
   z-index:2;
   display:flex;
@@ -356,34 +355,49 @@ body:not(.loading) .hero>*{opacity:1;transform:none}
   margin-bottom:9vh;
 }
 
-.vases{
+.vases-track-wrapper{
   position:relative;
-  height:clamp(180px,24vw,270px);
-  width:calc(var(--gap) * 4.4);
-  display:grid;
-  place-items:center;
-  perspective:1000px;
-  transform-style:preserve-3d;
-  z-index:2;
+  width:100%;
+  max-width:1380px;
+  overflow:hidden;
+  mask-image:linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+  -webkit-mask-image:linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+  padding:20px 0 28px;
 }
-/* 3D cylindrical placement with depth */
+
+.vases-track{
+  display:flex;
+  align-items:flex-end;
+  gap:clamp(28px, 4.5vw, 68px);
+  width:max-content;
+  animation:vaseConveyorLR 36s linear infinite;
+  will-change:transform;
+}
+
+@keyframes vaseConveyorLR{
+  0%{
+    transform:translateX(-50%);
+  }
+  100%{
+    transform:translateX(0%);
+  }
+}
+
 .vase{
-  --off:0;--mag:0;
-  position:absolute;
-  left:50%;
-  display:grid;
-  justify-items:center;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
   gap:8px;
   color:#ffe0c4;
   font-size:1.1rem;
   text-shadow:0 1px 3px #2b0d1acc;
-  transform:translate3d(calc(-50% + var(--off) * var(--gap)),calc(var(--mag) * 16px),calc(var(--mag) * -70px)) rotateY(calc(var(--off) * 18deg)) scale(calc(1 - var(--mag) * .2));
-  opacity:clamp(0,(2.35 - var(--mag)) * .85,1);
-  filter:blur(calc(var(--mag) * 1.5px)) brightness(calc(1 - var(--mag) * .26));
-  pointer-events:clamp(0,(2.5 - var(--mag)) * 10,1);
-  z-index:calc(6 - var(--mag));
-  transition:transform .65s var(--ease),opacity .45s,filter .45s,pointer-events .45s;
-  transform-style:preserve-3d;
+  flex:0 0 auto;
+  cursor:pointer;
+  background:none;
+  border:none;
+  padding:0;
+  transition:transform .35s var(--ease), filter .35s ease;
 }
 
 .vase-art{
@@ -392,20 +406,25 @@ body:not(.loading) .hero>*{opacity:1;transform:none}
   line-height:0;
   isolation:isolate;
 }
-.vase img{
-  height:clamp(100px,15vw,175px);
+
+.vase img,
+.vase-img{
+  height:clamp(115px,16vw,185px);
   filter:drop-shadow(0 14px 22px #2b0d1a99);
-  transition:height .65s var(--ease),transform .65s var(--ease),filter .45s ease;
+  transition:height .45s var(--ease),transform .45s var(--ease),filter .4s ease;
   user-select:none;
   -webkit-user-drag:none;
 }
+
+/* When a particular vase is hovered or focused: halts rotation and elevates with radiant gold highlight */
+.vase:hover img,
+.vase.hovered img,
 .vase.focus img{
-  height:clamp(135px,20vw,240px);
+  height:clamp(135px,19vw,225px);
   transform:translateY(-8px);
-  filter:drop-shadow(0 0 16px #ffb82ecc) drop-shadow(0 14px 22px #2b0d1a99);
+  filter:drop-shadow(0 0 18px #ffb82ecc) drop-shadow(0 14px 22px #2b0d1a99);
 }
 
-/* Latest vase animations: golden pool, celestial sparks */
 .vase-art::before{
   content:"";
   position:absolute;
@@ -422,6 +441,7 @@ body:not(.loading) .hero>*{opacity:1;transform:none}
   background:radial-gradient(ellipse at center,#ffd777f0 0%,#ffb02e88 38%,#ffb02e00 72%);
   filter:blur(3px);
 }
+
 .vase::after{
   content:"";
   position:absolute;
@@ -440,13 +460,19 @@ body:not(.loading) .hero>*{opacity:1;transform:none}
   transition:opacity .45s ease;
 }
 
+.vase:hover .vase-art::before,
+.vase.hovered .vase-art::before,
 .vase.focus .vase-art::before{
   opacity:1;
 }
+
+.vase:hover::after,
+.vase.hovered::after,
 .vase.focus::after{
   opacity:1;
   animation:ev-twinkle 1.8s ease-in-out infinite;
 }
+
 @keyframes ev-twinkle{
   50%{
     opacity:.35;
@@ -466,10 +492,14 @@ body:not(.loading) .hero>*{opacity:1;transform:none}
   opacity:0;
   transition:opacity .5s ease;
 }
+
+.vase:hover .vase-aura,
+.vase.hovered .vase-aura,
 .vase.focus .vase-aura{
   opacity:1;
   animation:hover 4s ease-in-out infinite alternate;
 }
+
 .vase-floor-shadow{
   position:absolute;
   bottom:26px;
@@ -483,12 +513,16 @@ body:not(.loading) .hero>*{opacity:1;transform:none}
   z-index:-1;
   transition:all .5s ease;
 }
+
+.vase:hover .vase-floor-shadow,
+.vase.hovered .vase-floor-shadow,
 .vase.focus .vase-floor-shadow{
   width:88%;
   height:22px;
   background:#0d0209e6;
   filter:blur(9px);
 }
+
 .vase-name{
   font-family:"Cinzel Decorative",serif;
   font-size:.85rem;
@@ -503,6 +537,9 @@ body:not(.loading) .hero>*{opacity:1;transform:none}
   transition:all .3s ease;
   margin-top:4px;
 }
+
+.vase:hover .vase-name,
+.vase.hovered .vase-name,
 .vase.focus .vase-name{
   color:var(--gold);
   border-color:var(--gold);
@@ -511,33 +548,14 @@ body:not(.loading) .hero>*{opacity:1;transform:none}
   font-weight:600;
   transform:scale(1.06);
 }
-.vase:not(.focus) .vase-name{opacity:.85}
+
 @keyframes hover{to{scale:1.08;opacity:.75}}
-@media (hover:hover){
-  .vase:not(.focus):hover{
-    filter:blur(0) brightness(1.2);
-    transform:translate3d(calc(-50% + var(--off) * var(--gap)),calc(var(--mag) * 12px),calc(var(--mag) * -50px)) rotateY(calc(var(--off) * 18deg)) scale(calc(1.04 - var(--mag) * .2));
+
+@media (prefers-reduced-motion:reduce){
+  .vases-track{
+    animation:none;
   }
 }
-.vase-arrow{
-  position:relative;
-  z-index:6;
-  width:52px;
-  height:52px;
-  flex:none;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  font-size:2rem;
-  line-height:1;
-  color:#ffe6b3;
-  background:#2b0d1a8c;
-  border:1px solid #e5ad2f73;
-  box-shadow:0 6px 18px #1b061199;
-  transition:transform .25s var(--ease),background .25s,color .25s;
-}
-.vase-arrow:hover{background:#e5ad2f2e;color:#fff}
-.vase-arrow:active{scale:.94}
 
 /* Modal (eventsOverlayIn / eventsModalIn) - Royal Parchment Letter UI */
 #modal{
