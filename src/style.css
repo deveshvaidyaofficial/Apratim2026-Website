@@ -374,6 +374,13 @@ body:not(.loading) .hero>*{opacity:1;transform:none}
   will-change:transform;
 }
 
+/* Pause the continuous left-to-right rotation when a particular vase is hovered */
+.vases-track:has(.vase:hover),
+.vases-track.paused,
+.vase-row.is-paused .vases-track{
+  animation-play-state:paused !important;
+}
+
 @keyframes vaseConveyorLR{
   0%{
     transform:translateX(-50%);
