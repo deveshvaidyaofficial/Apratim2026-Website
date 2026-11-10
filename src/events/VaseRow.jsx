@@ -1,115 +1,98 @@
 import { useEffect, useRef, useState } from "react";
 import CategoryScroll from "./CategoryScroll.jsx";
 
-/* 3D Spotlight Carousel for event vases:
-   - Circular depth placement with center spotlight
-   - Touch swiping, ornate left/right arrows, keyboard nav
-   - Focused vase tap opens the category popup; side vase tap rotates to focus
-   - Desktop hover reveals the unrolling parchment preview */
+/* Continuous Left-to-Right Rotating Carousel for Event Vases:
+   - Infinite, seamless continuous rotation moving earthen vases from left to right
+   - Automatically halts/stops rotation whenever the user hovers on a particular vase
+   - Hover reveals the unrolling parchment preview, golden aura, and celestial sparks
+   - Clicking opens the full-screen category popup
+   - Supports touch interaction and keyboard navigation */
 export default function VaseRow({ categories, onSelect }) {
-  const [focus, setFocus] = useState(2);
-  const [active, setActive] = useState(null); // { id, cx, top } of the hovered vase
-  const touchX = useRef(null);
+  const [hoveredVase, setHoveredVase] = useState(null); // category id
+  const [activeScroll, setActiveScroll] = useState(null); // { id, cx, top }
   const timer = useRef(0);
 
-  const stepFocus = d => setFocus(f => (f + d + categories.length) % categories.length);
-
-  // Keyboard navigation when no popup is open
-  useEffect(() => {
-    const key = e => {
-      if (document.querySelector(".evp") || document.querySelector("#modal:not([hidden])")) return;
-      if (e.key === "ArrowLeft") stepFocus(-1);
-      if (e.key === "ArrowRight") stepFocus(1);
-    };
-    addEventListener("keydown", key);
-    return () => removeEventListener("keydown", key);
-  }, [categories.length]);
+  // Duplicate categories to produce a seamless, continuous infinite loop
+  const duplicatedCategories = [...categories, ...categories];
 
   const cancelHide = () => clearTimeout(timer.current);
   const show = (cat, btn) => {
     cancelHide();
+    setHoveredVase(cat.id);
     const r = (btn.querySelector("img") || btn).getBoundingClientRect();
-    setActive({ id: cat.id, cx: r.left + r.width / 2, top: r.top });
+    setActiveScroll({ id: cat.id, cx: r.left + r.width / 2, top: r.top });
   };
-  const hideSoon = () => { cancelHide(); timer.current = setTimeout(() => setActive(null), 160); };
-  const hideNow = () => { cancelHide(); setActive(null); };
-  const select = id => { hideNow(); onSelect?.(id); };
+  const hideSoon = () => {
+    cancelHide();
+    timer.current = setTimeout(() => {
+      setHoveredVase(null);
+      setActiveScroll(null);
+    }, 160);
+  };
+  const hideNow = () => {
+    cancelHide();
+    setHoveredVase(null);
+    setActiveScroll(null);
+  };
+  const select = id => {
+    hideNow();
+    onSelect?.(id);
+  };
 
   useEffect(() => {
-    if (!active) return;
+    if (!activeScroll) return;
     addEventListener("scroll", hideNow, true);
     addEventListener("resize", hideNow);
-    return () => { removeEventListener("scroll", hideNow, true); removeEventListener("resize", hideNow); };
-  }, [active]);
+    return () => {
+      removeEventListener("scroll", hideNow, true);
+      removeEventListener("resize", hideNow);
+    };
+  }, [activeScroll]);
   useEffect(() => cancelHide, []);
 
   return (
-    <div
-      className="vase-row"
-      id="vases"
-      onTouchStart={e => { touchX.current = e.touches[0].clientX; }}
-      onTouchEnd={e => {
-        if (touchX.current === null) return;
-        const dx = e.changedTouches[0].clientX - touchX.current;
-        touchX.current = null;
-        if (Math.abs(dx) > 32) stepFocus(dx < 0 ? 1 : -1);
-      }}
-    >
-      <button
-        type="button"
-        className="vase-arrow prev"
-        aria-label="Previous event category"
-        onClick={() => stepFocus(-1)}
-      >
-        ‹
-      </button>
-
-      <div className="vases">
-        {categories.map((c, i) => {
-          const n = categories.length;
-          const raw = i - focus;
-          const off = raw - n * Math.round(raw / n);
-          const isFocus = off === 0;
-          return (
-            <button
-              key={c.id}
-              type="button"
-              className={`vase ${isFocus ? "focus" : ""}`}
-              style={{ "--off": off, "--mag": Math.abs(off) }}
-              aria-current={isFocus ? "true" : undefined}
-              tabIndex={isFocus ? 0 : -1}
-              onClick={() => isFocus ? select(c.id) : stepFocus(off)}
-              onPointerEnter={e => {
-                if (isFocus && e.pointerType === "mouse") show(c, e.currentTarget);
-              }}
-              onPointerLeave={e => {
-                if (e.pointerType === "mouse") hideSoon();
-              }}
-            >
-              <div className="vase-aura" aria-hidden="true" />
-              <span className="vase-art">
-                <img src="/assets/vase.webp" alt="" draggable="false" />
-              </span>
-              <div className="vase-floor-shadow" aria-hidden="true" />
-              <span className="vase-name">{c.name}</span>
-            </button>
-          );
-        })}
+    <div className={`vase-row ${hoveredVase ? "is-paused" : ""}`} id="vases">
+      <div className="vases-track-wrapper">
+        <div className={`vases-track ${hoveredVase ? "paused" : ""}`}>
+          {duplicatedCategories.map((c, idx) => {
+            const isHovered = hoveredVase === c.id;
+            return (
+              <button
+                key={`${c.id}-${idx}`}
+                type="button"
+                className={`vase ${isHovered ? "focus hovered" : ""}`}
+                aria-label={c.name}
+                onClick={() => select(c.id)}
+                onPointerEnter={e => {
+                  if (e.pointerType === "mouse") show(c, e.currentTarget);
+                }}
+                onPointerLeave={e => {
+                  if (e.pointerType === "mouse") hideSoon();
+                }}
+                onFocus={e => show(c, e.currentTarget)}
+                onBlur={hideSoon}
+              >
+                <div className="vase-aura" aria-hidden="true" />
+                <span className="vase-art">
+                  <img
+                    className="vase-img"
+                    src="/assets/vase.webp"
+                    alt=""
+                    draggable="false"
+                  />
+                </span>
+                <div className="vase-floor-shadow" aria-hidden="true" />
+                <span className="vase-name">{c.name}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      <button
-        type="button"
-        className="vase-arrow next"
-        aria-label="Next event category"
-        onClick={() => stepFocus(1)}
-      >
-        ›
-      </button>
-
-      {active && (
+      {activeScroll && (
         <CategoryScroll
-          category={categories.find(c => c.id === active.id)}
-          pos={active}
+          category={categories.find(c => c.id === activeScroll.id)}
+          pos={activeScroll}
           onEnter={cancelHide}
           onLeave={hideSoon}
           onSelect={select}
