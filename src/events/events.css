@@ -69,20 +69,13 @@
 .ev-vase-img{transition:filter .45s ease}
 .ev-vase-name{transition:color .35s ease}
 
-/* glow pool behind the base + ring around the base */
-.ev-vase-art::before,.ev-vase-art::after{
+/* glow pool behind the base */
+.ev-vase-art::before{
   content:"";position:absolute;left:50%;pointer-events:none;border-radius:50%;
   opacity:0;transition:opacity .45s ease;
-}
-.ev-vase-art::before{                       /* soft golden pool, behind the vase */
   z-index:-1;bottom:-6%;width:135%;height:34%;transform:translateX(-50%);
   background:radial-gradient(ellipse at center,#ffd777f0 0%,#ffb02e88 38%,#ffb02e00 72%);
   filter:blur(3px);
-}
-.ev-vase-art::after{                        /* thin glowing ring around the base */
-  z-index:1;bottom:-1%;width:118%;height:20%;transform:translateX(-50%);
-  border:2px solid #ffd770;
-  box-shadow:0 0 14px 2px #ffb82ecc,inset 0 0 12px #ffb82e88;
 }
 /* a few twinkling sparks above the vase */
 .ev-vase::after{
@@ -99,11 +92,8 @@
   filter:drop-shadow(0 0 14px #ffb82ecc) drop-shadow(0 10px 18px #000b);
 }
 .ev-vase[data-active="true"] .ev-vase-name{color:var(--gold)}
-.ev-vase[data-active="true"] .ev-vase-art::before,
-.ev-vase[data-active="true"] .ev-vase-art::after{opacity:1}
-.ev-vase[data-active="true"] .ev-vase-art::after{animation:ev-ring 2.4s ease-in-out infinite}
+.ev-vase[data-active="true"] .ev-vase-art::before{opacity:1}
 .ev-vase[data-active="true"]::after{opacity:1;animation:ev-twinkle 1.8s ease-in-out infinite}
-@keyframes ev-ring{50%{transform:translateX(-50%) scale(1.07);box-shadow:0 0 22px 4px #ffb82e,inset 0 0 14px #ffb82e}}
 @keyframes ev-twinkle{50%{opacity:.35}}
 
 /* the scroll (portal on <body>, fixed position set from JS) */
